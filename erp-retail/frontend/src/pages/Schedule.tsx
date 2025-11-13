@@ -1,5 +1,5 @@
 import React from 'react';
-import ScheduleTable from '../components/common/ScheduleTable';
+import ScheduleTable from '../components/employee/common/ScheduleTable';
 
 const Schedule = () => {
   return (

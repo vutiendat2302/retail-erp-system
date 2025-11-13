@@ -26,7 +26,11 @@ export interface TableProp<T> {
   loading: boolean;
   onEdit: (item: T) => void;
   onDelete: (id: string) => void;
-  totalElements: number
+  totalElements: number;
+  page: number;
+  totalPages: number;
+  setPage: (page: number) => void;
+  goToPage: (newPage: number) => void;
 }
 
 export interface Warehouse extends BaseEntity{
@@ -45,44 +49,115 @@ export interface Inventory extends BaseEntity {
   priceNormal: number;
 }
 
-// Product
-export interface Product extends BaseEntity {
-  priceNormal: number;
-  brandName: string;
-  categoryName: string;
-  manufacturingLocationName: string;
-  sku: string;
-  tag: string;
-  priceSell: number;
-  promotionPrice: number;
-  metaKeyword: string;
-  seoTitle: string;
-  brandId: string;
-  categoryId: string;
-  manufacturingLocationId: string;
-  weight: number;
-  vat: number;
+export interface FormProps<T, V> {
+  initialData?: T | null;
+  onSubmit: (data: V) => void | Promise<void>;
+  onClose: () => void;
+  // Thêm các props khác nếu cần, ví dụ:
+  categories?: CategoryName[];
+  brands?: BrandName[];
 }
 
-export interface ProductFormData extends Product {
+// === PRODUCT TYPES ===
+
+// 1. Dữ liệu sản phẩm NHẬN VỀ từ API (dùng để hiển thị)
+// Khớp với ProductView hoặc ProductResponseDto từ Backend
+export interface Product {
   id: string;
-  name: string;
-  description: string;
-  priceNormal: number;
-  status: string;
-  brandName: string;
-  categoryName: string;
-  manufacturingLocationName: string;
   sku: string;
+  name: string;
+  seoTitle: string;
+  description: string;
+  status: 'active' | 'inactive' | string; // Cho phép string để linh hoạt
   tag: string;
+  image: string;
+  listImage: string;
+  priceNormal: number;
   priceSell: number;
   promotionPrice: number;
+  vat: number;
+  weight: number;
+  warranty: string;
+  hot: string; // ISO Date String
+  viewCount: number;
+  sellable: boolean;
   metaKeyword: string;
-  seoTitle: string;
+  createBy: string;
+  createAt: string; // ISO Date String
   updateBy: string;
-  brandId: string;
+  updateAt: string; // ISO Date String
+  // Dữ liệu từ bảng quan hệ
   categoryId: string;
-  manufacturingLocationId: string;
+  categoryName: string;
+  brandId: string;
+  brandName: string;
+}
+
+// 2. Dữ liệu GỬI ĐI để TẠO MỚI sản phẩm
+export interface CreateProductRequest {
+  sku: string;
+  name: string;
+  priceSell: number;
+  categoryId: string;
+  brandId: string;
+  // Các trường tùy chọn khác
+  seoTitle?: string;
+  description?: string;
+  status?: 'active' | 'inactive';
+  tag?: string;
+  image?: string;
+  listImage?: string;
+  priceNormal?: number;
+  promotionPrice?: number;
+  vat?: number;
+  weight?: number;
+  warranty?: string;
+  hot?: string;
+  sellable?: boolean;
+  metaKeyword?: string;
+}
+
+// 3. Dữ liệu GỬI ĐI để CẬP NHẬT sản phẩm (Tất cả đều là tùy chọn)
+export interface UpdateProductRequest {
+  name?: string;
+  seoTitle?: string;
+  description?: string;
+  status?: 'active' | 'inactive';
+  tag?: string;
+  image?: string;
+  listImage?: string;
+  priceNormal?: number;
+  priceSell?: number;
+  promotionPrice?: number;
+  vat?: number;
+  weight?: number;
+  warranty?: string;
+  hot?: string;
+  sellable?: boolean;
+  metaKeyword?: string;
+  categoryId?: string;
+  brandId?: string;
+}
+
+// 4. Dữ liệu mà FORM quản lý (trạng thái nội bộ của form)
+export interface ProductFormData {
+  sku: string;
+  name: string;
+  seoTitle: string;
+  description: string;
+  status: 'active' | 'inactive';
+  tag: string;
+  image: string;
+  listImage: string;
+  priceNormal: number | ''; // Cho phép rỗng khi người dùng xóa số
+  priceSell: number | '';
+  promotionPrice: number | '';
+  vat: number | '';
+  weight: number | '';
+  warranty: string;
+  metaKeyword: string;
+  categoryId: string;
+  brandId: string;
 }
 
 export interface ProductStaticData {
@@ -125,7 +200,7 @@ export interface Brand extends BaseEntity {
   country: string;
 }
 
-export interface BrandFormData extends Omit<BaseEntity, "createAt | updateAt"> {
+export interface BrandFormData extends Omit<BaseEntity, "createAt" | "updateAt"> {
   country: string;
 }
 
@@ -138,17 +213,38 @@ export interface Supplier extends BaseEntity {
   phone: string;
 }
 
-export interface SupplierFormData extends Omit<BaseEntity, "createAt | updateAt"> {
+export interface SupplierFormData extends Omit<BaseEntity, "createAt" | "updateAt"> {
   email: string;
   address: string;
   phone: string;
 }
 
-export interface SupplierTableProp extends TableProp<Supplier> {
-  goToPage: (pageNumber: number) => void;
-  page: number;
-  totalPages: number;
-  setPage: (page: number) => void;
+export type SupplierTableProp = TableProp<Supplier>
+export type SupplierFormProp = FormProps<Supplier, SupplierFormData>;
+
+export interface InventoryTable extends Omit<TableProp<Inventory>, "onDelete" | "onEdit"> {
 }
 
-export type SupplierFormProp = FormProps<Supplier, SupplierFormData>;
+export interface ImportLog {
+	id: string;
+	name: string;
+	fromSupplierName: string;
+	toWarehouseName: string;
+	totalAmount: number;
+	status: string;
+	startTime: string;
+	endTime: string;
+	createBy: string;
+	createAt: string;
+}
+
+export interface ImportLogFormData {
+	id: string;
+	fromSupplierName: string;
+	toWarehouseName: string;
+	totalAmount: number;
+	status: string;
+}
+
+export type ImportLogTableProps = TableProp<ImportLog>;
+export type ImportLogFormProps = FormProps<ImportLog, ImportLogFormData>;

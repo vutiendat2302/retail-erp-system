@@ -2,18 +2,21 @@ import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import MainLayout from './components/layouts/MainLayout';
 import Employee from './pages/Employee';
 import Schedule from './pages/Schedule';
-import Attendance from './pages/Attendance';
-import Dashboard from './pages/Dashboard';
+import Attendance from 'p/Attendance';
+import Dashboard from 'p/Dashboard';
 import { useState, useEffect } from 'react';
-import { Report } from './components/inventory_components/Report';
+import { Report } from './components/ui/Report';
 import Warehouse from './pages/inventory-page/Warehouse';
 import Product from './pages/inventory-page/Product';
 import { LoginForm } from './pages/Login';
 import POSPage from './pages/POSPage';
 import {Category} from './pages/inventory-page/Category';
+import { Brand } from './pages/inventory-page/Brand';
+import { Supplier } from './pages/inventory-page/Supplier';
 import OrderManagementPage from './pages/OrderManagementPage';
 import PromoCodeManagementPage from './pages/PromoCodeManagementPage';
 import { Toaster } from 'sonner';
+import ImportPage from './pages/inventory-page/ImportPage';
 
 interface UserData {
   username: string;
@@ -38,20 +41,6 @@ const AppRouter = () => {
   };
   
 
-   const goToPage = (page: PageType) => {
-    switch (page) {
-      case 'pos':
-        navigate('/pos');
-        break;
-      case 'orders':
-        navigate('/orders');
-        break;
-      case 'promocodes':
-        navigate('/promocodes');
-        break;
-    }
-  };
-
   useEffect(() => {
     if (!userData && window.location.pathname !== '/login') {
       navigate('/login');
@@ -75,16 +64,15 @@ const AppRouter = () => {
         <Route path='product' element={<Product />} />
         <Route path='post-of-link' element={<POSPage/>} />
         <Route path = 'category' element={<Category />} />
-        <Route path="pos" element={<POSPage />} />
-        <Route path="orders" element={<OrderManagementPage onNavigate={goToPage} />} />
-        <Route path="promocodes" element={<PromoCodeManagementPage onNavigate={goToPage} />} />
+        <Route path = 'brand' element = {<Brand />} />
+        <Route path = 'supplier' element = {<Supplier />} />
+        <Route path = 'book' element = {<ImportPage />} />
       </Route>
     </Routes>
   );
 };
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<PageType>('pos');
   return (
     <BrowserRouter>
       <AppRouter />

@@ -4,9 +4,9 @@ import { Button } from '../../components/ui/button';
 import { Plus, } from 'lucide-react';
 import { createCategory, updateCategory, deleteCategory, getCountCategoryActive, getSearchCategory } from '../../services/inventery-api/CategoryService';
 import type { Category, CategoryFormData, CategoryFormProps, CategoryTableProp} from '../../types/InventoryServiceType';
-import {CategoryTable } from '../../components/inventory_components/categories/CategoryTable';
-import CategoryForm from '../../components/inventory_components/categories/CategoryForm'
-import CategoryStatic from '../../components/inventory_components/categories/CategoryStatic';
+import {CategoryTable } from '../../components/inventory/categories/CategoryTable';
+import CategoryForm from '../../components/inventory/categories/CategoryForm'
+import CategoryStatic from '../../components/inventory/categories/CategoryStatic';
 import { getCountProductActive } from '../../services/inventery-api/ProductService';
 
 export function Category() {
@@ -161,29 +161,11 @@ export function Category() {
             onEdit={handleUpdate}
             onDelete={handleDelete}
             totalElements={totalElements}
+            goToPage={goToPage}
+            page={page}
+            setPage={setPage}
+            totalPages={totalPages}
           />
-        </div>
-
-        <div className="flex justify-center items-center mt-4 space-x-4">
-          <button
-            onClick={() => goToPage(page - 1)}
-            disabled={page === 0}
-            className='px-3 py-1 bg-gray-200 rounded disabled:opacity-50'
-          >
-            Prev
-          </button>
-
-          <span>
-            Trang <strong>{totalPages === 0 ? 0 : page + 1}</strong> / <strong>{totalPages}</strong>
-          </span>
-
-          <button
-            onClick={() => goToPage(page + 1)}
-            disabled={page + 1 >= totalPages}
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
         </div>
       </div>
     </div>

@@ -1,13 +1,13 @@
 import React, {useState, useEffect} from 'react';
-import { ProductSearch } from '../../components/inventory_components/products/ProductSearch';
-import { WarehouseChoose } from '../../components/inventory_components/warehouses/WarehouseChoose';
+import { ProductSearch } from '../../components/inventory/products/ProductSearch';
+import { WarehouseChoose } from '../../components/inventory/warehouses/WarehouseChoose';
 import { getCountProductInWarehouse, getCountProductsNearExpiry, getCountProductsNearOut, getProductBatch, getSumQuantityProductInWarehouse, getWarehouses } from '../../services/inventery-api/WarehouseService';
-import { WarehouseTableComponent } from '../../components/inventory_components/warehouses/WarehouseTable';
+import { WarehouseTableComponent } from '../../components/inventory/warehouses/WarehouseTable';
 import { getInventoryByNameWarehouse, getTotalPriceNormalByWarehouse, getSearchInventory} from '../../services/inventery-api/WarehouseService';
-import WarehouseStatic from '../../components/inventory_components/warehouses/WarehouseStatic';
+import WarehouseStatic from '../../components/inventory/warehouses/WarehouseStatic';
 import type { Warehouse as WarehouseType, Inventory, ProductBatch } from '../../types/InventoryServiceType';
 import { HardDrive } from 'lucide-react';
-import { InventorySearch } from '../../components/inventory_components/warehouses/WarehouseSearch';
+import { InventorySearch } from '../../components/inventory/warehouses/WarehouseSearch';
 
 const Warehouse: React.FC = () => {
   //data
@@ -15,6 +15,8 @@ const Warehouse: React.FC = () => {
   const [openFindWarehouse, setOpenWarehouse] = useState(false);
   const [selectWarehouse, setSelectWarehouse] = useState<string | null>('');
   const [inventories, setInventories] = useState<Inventory[]>([]);
+  const [currentInventory, setCurrentInventory] = useState<Inventory | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
 
   //static
   const [totalInventory, setTotalInventory] = useState<number>(0); // tổng số bản ghi trong page
@@ -134,15 +136,13 @@ const Warehouse: React.FC = () => {
     setProductBatch(productBatch ?? "");
     setPage(0);
   }
-
-
   return (
     <div>
       <div className='px-6 md:px-10 -mt-10 space-y-6'>
         <div className='flex items-center justify-between '>
           <div className='mb-2'>
-            <h3 className='mb-6'>Quản lý kho hàng</h3>
-            <p className="text-muted-foreground">
+            <h3 className='mb-6 title'>Quản lý kho hàng</h3>
+            <p className="content font-size-md opacity-80">
               Theo dõi và quản lý tồn kho của bạn
             </p>
           </div>
@@ -181,32 +181,13 @@ const Warehouse: React.FC = () => {
           <WarehouseTableComponent
             data={inventories}
             loading={loading}
-            totalInventory={totalInventory}
+            totalElements={totalInventory}
+            goToPage={goToPage}
+            page={page}
+            setPage={setPage}
+            totalPages={totalPages}
           />
         </div>
-
-        <div className="flex justify-center items-center mt-4 space-x-4">
-          <button
-            onClick={() => goToPage(page - 1)}
-            disabled={page === 0}
-            className='px-3 py-1 bg-gray-200 rounded disabled:opacity-50'
-          >
-            Prev
-          </button>
-
-          <span>
-            Trang <strong>{totalPages === 0 ? 0 : page + 1}</strong> / <strong>{totalPages}</strong>
-          </span>
-
-          <button
-            onClick={() => goToPage(page + 1)}
-            disabled={page + 1 >= totalPages}
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-
       </div>
     </div>
   );

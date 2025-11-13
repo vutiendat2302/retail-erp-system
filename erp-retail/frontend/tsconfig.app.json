@@ -1,4 +1,5 @@
 {
+  
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2022",
@@ -21,7 +22,16 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    /* Cấu hình Paths */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "p/*": ["src/pages/*"],
+      "c/*": ["/src/components/*"]
+    },
+
   },
   "include": ["src"]
 }

@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { DialogContent, DialogDescription, DialogTitle, DialogTrigger, Dialog, DialogHeader } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
 import { Plus, ArrowLeft, ArrowRight } from 'lucide-react';
-import { BrandTable } from "../../components/inventory_components/brands/BrandTable";
+import { BrandTable } from "../../components/inventory/brands/BrandTable";
 import type { SupplierFormData, Supplier as SupplierType } from "../../types/InventoryServiceType";
 import { createSupplier, deleteSupplier, getSearchSupplier, getSuppliers, updateSupplier } from "../../services/inventery-api/Supplier";
-import { SupplierTable} from "../../components/inventory_components/supplier/SupplierTable";
+import { SupplierTable} from "../../components/inventory/supplier/SupplierTable";
 
 export function Supplier() {
   const [suppliers, setSuppliers] = useState<SupplierType[]>([])
@@ -88,7 +88,7 @@ export function Supplier() {
     };
 
   const goToPage = (newPage: number) => {
-    if (newPage >= 0 && newPage < totalPages) {
+    if (newPage >= 0 && newPage <= totalPages) {
       setPage(newPage);
     }
   }

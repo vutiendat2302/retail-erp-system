@@ -1,57 +1,42 @@
 import api from "./api";
+import type { CreateProductRequest, UpdateProductRequest } from '../../types/InventoryServiceType';
 
-
-type ProductResponseDto = any;
-
-type PageParams = {
-    search?: string | null;
-    category?: string | null;
-    brand?: string | null;
-    status?: string | null;
-    page?: number;
-    size?: number;
-    sort?: string;
+// Type cho các tham số tìm kiếm
+type SearchParams = {
+  search?: string | null;
+  categoryId?: string | null;
+  brandId?: string | null;
+  status?: string | null;
+  page?: number;
+  size?: number;
+  sort?: string;
 }
 
-// CRUD
-export const createProduct = (data: ProductResponseDto) => api.post('/api/product', data);
+// 1. HÀM TÌM KIẾM CHÍNH (thay thế tất cả các hàm get list/page/search cũ)
+export const searchProducts = (params: SearchParams = {}) => {
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v != null && v !== '' && v !== 'all')
+  );
+  return api.get('/api/products', { params: cleanParams });
+};
 
-export const getProducts = () => api.get('/api/product');
+// 2. Lấy chi tiết một sản phẩm
+export const getProductById = (id: string) => api.get(`/api/products/${id}`);
 
-export const getProduct = (id: string) => api.get(`/api/product/${id}`);
+// 3. Tạo mới sản phẩm
+export const createProduct = (data: CreateProductRequest) => api.post('/api/products', data);
 
-export const updateProduct = (id: string, data: ProductResponseDto) => api.put(`/api/product/${id}`, data);
+// 4. Cập nhật sản phẩm
+export const updateProduct = (id: string, data: UpdateProductRequest) => api.put(`/api/products/${id}`, data);
 
-export const deleteProduct = (id: string) => api.delete(`/api/product/${id}`);
+// 5. Xóa sản phẩm
+export const deleteProduct = (id: string) => api.delete(`/api/products/${id}`);
 
-export const getCountProductActive = () => api.get(`/api/product/active`);
+// 6. Đếm số sản phẩm active
+export const getCountProductActive = () => api.get(`/api/products/count/active`);
 
-// Phân trang
-export const getPageProducts = ({
-    page = 0,
-    size = 5,
-    sort = 'name,asc',
-}: PageParams= {}) => api.get('/api/product/page', {
-    params: {page, size, sort},
-});
-
-// Get Brand, Category, ManufacturingLocation
+// Các hàm khác (giả sử endpoint không đổi)
 export const getCategoryName = () => api.get(`/api/category/name`);
-export const getManufacturingName = () => api.get(`/api/manufacturingLocation/name`);
 export const getBrandName = () => api.get(`/api/brand/name`);
-
 export const getCountBrandActive = () => api.get(`/api/brand/getCountBrandActive`);
 export const getCountCategoryActive = () => api.get(`/api/category/getCountCategoryActive`);
-
-// Search
-export const getSearchProducts = ({
-    search = null,
-    category = null,
-    brand = null,
-    status = null,
-    page = 0,
-    size = 5,
-    sort = 'name,asc',
-}: PageParams = {}) => api.get(`api/product/search`, {
-    params: {search, category, brand, status, page, size, sort},
-})

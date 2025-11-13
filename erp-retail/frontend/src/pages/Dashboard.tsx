@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import PieChart from '../components/charts/PieChart';
-import JoinDateBarChart from '../components/charts/JoinDateBarChart';
-import BranchEmployeeBarChart from '../components/charts/BranchEmployeeBarChart';
+import PieChart from '../components/employee/PieChart';
+import JoinDateBarChart from '../components/employee/JoinDateBarChart';
+import BranchEmployeeBarChart from '../components/employee/BranchEmployeeBarChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -42,7 +42,7 @@ import {
   Activity
 } from 'lucide-react';
 import { getStores } from '../services/inventery-api/StoreServices';
-import { StoreChoose } from '../components/inventory_components/stores/StoreChoose';
+import { StoreChoose } from '../components/inventory/stores/StoreChoose';
 
 interface Store {
   id: string;
@@ -81,81 +81,82 @@ const Dashboard: React.FC = () => {
 
 
   const stats = [
-    {
-      title: 'Tổng sản phẩm',
-      value: '1,247',
-      change: '+12%',
-      changeType: 'increase' as const,
-      icon: Package,
-      color: 'text-blue-600'
-    },
-    {
-      title: 'Tổng giá trị kho',
-      value: '₫2.4M',
-      change: '+8%',
-      changeType: 'increase' as const,
-      icon: DollarSign,
-      color: 'text-green-600'
-    },
-    {
-      title: 'Đơn hàng tuần này',
-      value: '156',
-      change: '-3%',
-      changeType: 'decrease' as const,
-      icon: ShoppingCart,
-      color: 'text-orange-600'
-    },
-    {
-      title: 'Sản phẩm sắp hết',
-      value: '23',
-      change: '+5',
-      changeType: 'warning' as const,
-      icon: AlertTriangle,
-      color: 'text-red-600'
-    }
-  ];
-  
-  const recentActivity = [
-    {
-      id: 1,
-      action: 'Nhập kho',
-      product: 'Laptop Dell Inspiron 15',
-      quantity: 10,
-      time: '2 giờ trước',
-      type: 'import'
-    },
-    {
-      id: 2,
-      action: 'Xuất kho',
-      product: 'Chuột Logitech MX Master 3',
-      quantity: 5,
-      time: '4 giờ trước',
-      type: 'export'
-    },
-    {
-      id: 3,
-      action: 'Cập nhật giá',
-      product: 'Màn hình Samsung 27 inch',
-      quantity: 0,
-      time: '6 giờ trước',
-      type: 'update'
-    },
-    {
-      id: 4,
-      action: 'Cảnh báo tồn kho',
-      product: 'Bàn phím cơ Keychron K8',
-      quantity: 3,
-      time: '8 giờ trước',
-      type: 'warning'
-    }
-  ];
+  {
+    title: 'Tổng sản phẩm',
+    value: '1,340',
+    change: '+6%',
+    changeType: 'increase' as const,
+    icon: Package,
+    color: 'text-blue-600'
+  },
+  {
+    title: 'Tổng giá trị kho',
+    value: '₫12.4B',
+    change: '+10%',
+    changeType: 'increase' as const,
+    icon: DollarSign,
+    color: 'text-green-600'
+  },
+  {
+    title: 'Đơn hàng tuần này',
+    value: '1,245',
+    change: '-4%',
+    changeType: 'decrease' as const,
+    icon: ShoppingCart,
+    color: 'text-orange-600'
+  },
+  {
+    title: 'Sản phẩm sắp hết',
+    value: '48',
+    change: '+12',
+    changeType: 'warning' as const,
+    icon: AlertTriangle,
+    color: 'text-red-600'
+  }
+];
 
-  const lowStockProducts = [
-    { name: 'Chuột Logitech MX Master 3', current: 3, min: 10, percentage: 30 },
-    { name: 'Màn hình Samsung 27 inch', current: 0, min: 3, percentage: 0 },
-    { name: 'Bàn phím cơ Keychron K8', current: 5, min: 8, percentage: 62 },
-    { name: 'Tai nghe Sony WH-1000XM4', current: 2, min: 5, percentage: 40 }
-  ];
+const recentActivity = [
+  {
+    id: 1,
+    action: 'Nhập kho',
+    product: 'Sữa Vinamilk 1L',
+    quantity: 200,
+    time: '2 giờ trước',
+    type: 'import'
+  },
+  {
+    id: 2,
+    action: 'Xuất kho',
+    product: 'Gạo ST25 5kg',
+    quantity: 50,
+    time: '4 giờ trước',
+    type: 'export'
+  },
+  {
+    id: 3,
+    action: 'Cập nhật giá',
+    product: 'Dầu ăn Neptune 5L',
+    quantity: 0,
+    time: '6 giờ trước',
+    type: 'update'
+  },
+  {
+    id: 4,
+    action: 'Cảnh báo tồn kho',
+    product: 'Nước mắm Nam Ngư 500ml',
+    quantity: 12,
+    time: '8 giờ trước',
+    type: 'warning'
+  }
+];
+
+const lowStockProducts = [
+  { name: 'Mì Hảo Hảo tôm chua cay', current: 15, min: 50, percentage: 30 },
+  { name: 'Trứng gà ta hộp 10 quả', current: 5, min: 20, percentage: 25 },
+  { name: 'Nước ngọt Coca-Cola lon 330ml', current: 40, min: 100, percentage: 40 },
+  { name: 'Thịt heo ba chỉ 1kg', current: 8, min: 20, percentage: 40 }
+];
+
 
 
   const getChangeColor = (type: string) => {
@@ -178,13 +179,13 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="px-6 md:px-10">
+    <div className="px-6 md:px-10 bg-background">
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="mb-6 -mt-10 flex justify-between items-center">
           <div>
-            <h3 className='mb-2'>Tổng Quan Cửa Hàng</h3>
-            <p className='text-muted-foreground'>Quản lý cửa hàng</p>
+            <h3 className='mb-2 title'>Tổng Quan Cửa Hàng</h3>
+            <p className='content font-size-md opacity-80'>Quản lý cửa hàng</p>
           </div>
 
           <div>
@@ -204,12 +205,12 @@ const Dashboard: React.FC = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (
             <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+              <CardHeader className="flex font-weight-semibold flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="font-weight-bold font-inter font-size-md">{stat.title}</CardTitle>
                 <stat.icon className={`h-4 w-4 ${stat.color}`} />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="font-inter font-size-lg font-semibold">{stat.value}</div>
                 <p className={`text-xs ${getChangeColor(stat.changeType)}`}>
                   {stat.change} so với tháng trước
                 </p>
@@ -223,7 +224,7 @@ const Dashboard: React.FC = () => {
           <Card className="col-span-4">
             <CardHeader>
               <CardTitle>Hoạt động gần đây</CardTitle>
-              <CardDescription>
+              <CardDescription className='opacity-80'>
                 Các thay đổi mới nhất trong kho hàng
               </CardDescription>
             </CardHeader>
@@ -235,10 +236,10 @@ const Dashboard: React.FC = () => {
                       {getActivityIcon(activity.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="font-weight-medium font-size-sm font-inter">
                         {activity.action}: {activity.product}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-nm font-inter font-weight-thin opacity-80">
                         {activity.quantity > 0 && `Số lượng: ${activity.quantity} • `}
                         {activity.time}
                       </p>
@@ -256,7 +257,7 @@ const Dashboard: React.FC = () => {
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
                 <span>Cảnh báo kho</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className='opacity-80'>
                 Sản phẩm sắp hết hàng
               </CardDescription>
             </CardHeader>
@@ -265,7 +266,7 @@ const Dashboard: React.FC = () => {
                 {lowStockProducts.map((product, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">{product.name}</p>
+                      <p className="text-sm font-weight-medium">{product.name}</p>
                       <Badge variant={product.current === 0 ? 'destructive' : 'secondary'}>
                         {product.current}/{product.min}
                       </Badge>
@@ -295,8 +296,8 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <Package className="h-8 w-8 text-blue-600" />
                   <div>
-                    <p className="font-medium">Thêm sản phẩm</p>
-                    <p className="text-sm text-muted-foreground">Nhập sản phẩm mới</p>
+                    <p className="font-weight-semibold font-size-nm">Thêm sản phẩm</p>
+                    <p className="text-sm">Nhập sản phẩm mới</p>
                   </div>
                 </div>
               </Card>
@@ -305,8 +306,8 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <TrendingUp className="h-8 w-8 text-green-600" />
                   <div>
-                    <p className="font-medium">Nhập kho</p>
-                    <p className="text-sm text-muted-foreground">Cập nhật số lượng</p>
+                    <p className="font-weight-semibold font-size-nm">Nhập kho</p>
+                    <p className="text-sm">Cập nhật số lượng</p>
                   </div>
                 </div>
               </Card>
@@ -315,8 +316,8 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <BarChart3 className="h-8 w-8 text-purple-600" />
                   <div>
-                    <p className="font-medium">Xem báo cáo</p>
-                    <p className="text-sm text-muted-foreground">Thống kê chi tiết</p>
+                    <p className="font-weight-semibold font-size-nm">Xem báo cáo</p>
+                    <p className="text-sm">Thống kê chi tiết</p>
                   </div>
                 </div>
               </Card>
@@ -325,8 +326,8 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <Users className="h-8 w-8 text-orange-600" />
                   <div>
-                    <p className="font-medium">Quản lý người dùng</p>
-                    <p className="text-sm text-muted-foreground">Phân quyền access</p>
+                    <p className="font-weight-semibold font-size-nm">Quản lý người dùng</p>
+                    <p className="text-sm">Phân quyền access</p>
                   </div>
                 </div>
               </Card>
@@ -337,25 +338,20 @@ const Dashboard: React.FC = () => {
 
     {/* Tiêu đề */}
       <div className='mt-8'>
-        <h1>
+        <h3 className = "mb-2 title">
           Quản Lý Nhân Sự
-        </h1>
-      </div>
+        </h3>
 
-      <motion.p
-        className="text-xl font-semibold text-center text-gray-600 mt-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-      >
-        Quản lý nhân sự toàn diện, dễ dàng và hiệu quả.
-      </motion.p>
+        <p className='content font-size-md opacity-80'>
+          Quản lý nhân sự toàn diện, dễ dàng và hiệu quả.
+        </p>
+      </div>
 
       <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Cột 1: Biểu đồ 1 nhỏ hơn */}
         <div className="col-span-1">
           <div className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4 text-center">Phân bố giới tính</h2>
+            <h2 className="font-size-lg font-weight-semibold mb-4 text-center">Phân bố giới tính</h2>
             <div className="h-80">
               <PieChart />
             </div>
@@ -366,7 +362,7 @@ const Dashboard: React.FC = () => {
         <div className="col-span-2 grid grid-rows-2 gap-6">
           {/* Biểu đồ A */}
           <div className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4 text-center">
+            <h2 className="font-size-lg font-weight-semibold mb-4 text-center">
               Phân bố nhân viên theo tháng/năm bắt đầu làm
             </h2>
             <JoinDateBarChart />
@@ -374,7 +370,7 @@ const Dashboard: React.FC = () => {
 
           {/* Biểu đồ B */}
           <div className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4 text-center">
+            <h2 className="font-size-lg font-weight-semibold mb-4 text-center">
               Số nhân viên theo chi nhánh
             </h2>
             <div className="bg-white rounded-xl shadow-md p-6">

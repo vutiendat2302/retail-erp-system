@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import BigNumber from "bignumber.js";
 import { Tabs } from '../components/ui/tabs';
-import POSHeader from '../components/LandingPage/POSHeader';
-import InvoiceTabs from '../components/LandingPage/InvoiceTabs';
-import ProductList from '../components/LandingPage/ProductList';
-import OrderNotes from '../components/LandingPage/OrderNotes';
-import POSSidebar from '../components/LandingPage/POSSidebar';
+import POSHeader from '../components/pos/POSHeader';
+import InvoiceTabs from '../components/pos/InvoiceTabs';
+import ProductList from '../components/pos/ProductList';
+import OrderNotes from '../components/pos/OrderNotes';
+import POSSidebar from '../components/pos/POSSidebar';
 import type { orderDetail, Invoice, CompletedOrder } from '../types/pos';
 
 export default function POSPage() {

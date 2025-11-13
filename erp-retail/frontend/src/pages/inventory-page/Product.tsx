@@ -1,7 +1,17 @@
-import React, {useState, useEffect} from 'react';
-import ProductForm from '../../components/inventory_components/products/ProductForm';
+import React, { useState, useEffect, useCallback } from 'react';
 
+// Components
+import ProductForm from '../../components/inventory/products/ProductForm';
+import ProductStatic from '../../components/inventory/products/ProductStatic';
+import { ProductSearch } from '../../components/inventory/products/ProductSearch';
+import { ProductTableComponent } from '../../components/inventory/products/ProductTableComponent';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
+import { Plus } from 'lucide-react';
+
+// API Service
 import {
+  searchProducts,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -10,85 +20,76 @@ import {
   getCountCategoryActive,
   getCategoryName,
   getBrandName,
-  getSearchProducts,
 } from '../../services/inventery-api/ProductService';
-import { DialogContent, DialogDescription, DialogTitle, DialogTrigger, Dialog, DialogHeader } from '../../components/ui/dialog';
-import { Button } from '../../components/ui/button';
-import { Plus, Search, Package, AlertTriangle, TrendingUp, DollarSign, University } from 'lucide-react';
-import ProductStatic from '../../components/inventory_components/products/ProductStatic';
-import { ProductSearch } from '../../components/inventory_components/products/ProductSearch';
-import { ProductTableComponent } from '../../components/inventory_components/products/ProductTableComponent';
-import type { Product as ProductType, ProductFormData, CategoryName, ManufacturingLocationName, BrandName } from '../../types/InventoryServiceType';
+
+// Types
+import type { Product as ProductType, ProductFormData, CategoryName, BrandName, CreateProductRequest, UpdateProductRequest } from '../../types/InventoryServiceType';
 
 const Product: React.FC = () => {
+  // === STATE MANAGEMENT ===
   const [products, setProducts] = useState<ProductType[]>([]);
   const [page, setPage] = useState<number>(0);
-  const [size, setSize] = useState<number>(20);
+  const [size, setSize] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
   const [formOpen, setFormOpen] = useState<boolean>(false);
   const [currentProduct, setCurrentProduct] = useState<ProductType | null>(null);
-  const [totalElements, setTotalElements] = useState<number>(0);
-  const [countProductActive, setCountProductActive] = useState<number>(0);
-  const [countBrandActive, setCountBrandActive] = useState<number>(0);
-  const [countCategoryActive, setCountCategoryActive] = useState<number>(0);
-  const [categories, setCategories] = useState<CategoryName[]>([]);
-  const [brands, setBrands] = useState<BrandName[]>([]);
-  const [openFindCategory, setOpenFindCategory] = useState<boolean>(false);
-  const [openFindBrand, setOpenFindBrand] = useState<boolean>(false);
-  const [openFindStatus, setOpenFindStatus] = useState<boolean>(false);
-  const [search, setSearch] = useState<string>('');
-  const [category, setCategory] = useState<string>('');
-  const [brand, setBrand] = useState<string>('');
-  const [status, setStatus] = useState<string>('');
 
-  const loadProducts = async (pageNum: number) => {
+  const [stats, setStats] = useState({ countProductActive: 0, countBrandActive: 0, countCategoryActive: 0 });
+  const [options, setOptions] = useState<{ categories: CategoryName[], brands: BrandName[] }>({ categories: [], brands: [] });
+
+const [filters, setFilters] = useState({ search: '', categoryId: '', brandId: '', status: '' });
+
+// THÊM 2 DÒNG NÀY VÀO ĐỂ QUẢN LÝ POPOVER
+const [openFindCategory, setOpenFindCategory] = useState<boolean>(false);
+const [openFindBrand, setOpenFindBrand] = useState<boolean>(false);
+  // === DATA FETCHING LOGIC ===
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getSearchProducts({
-        search: search || undefined,
-        category: category || undefined,
-        brand: brand || undefined,
-        status: status || undefined,
-        page: pageNum, size, sort: 'name,asc'});
-      
+      const params = { page, size, sort: 'createAt,desc', ...filters };
+      const res = await searchProducts(params);
       setProducts(res.data.content);
       setTotalPages(res.data.totalPages);
       setTotalElements(res.data.totalElements);
-
-      setCountProductActive((await getCountProductActive()).data);
-      setCountBrandActive((await getCountBrandActive()).data);
-      setCountCategoryActive((await getCountCategoryActive()).data);
-      setCategories((await getCategoryName()).data);
-      setBrands((await getBrandName()).data);
-
     } catch (error) {
-      console.error(error);
+      console.error("Failed to fetch products:", error);
+      // TODO: Hiển thị thông báo lỗi cho người dùng
     } finally {
       setLoading(false);
     }
-  };
-  
-  useEffect(() => {
-    if (size > 0) {
-      loadProducts(page);
-    }
-  }, [page, size, search, category, brand, status]);
-  
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Xác nhận xóa product này?')) return;
-    await deleteProduct(id);
+  }, [page, size, filters]);
 
-    if (products.length === 1 && page > 0) {
-      setPage(page - 1);
-    } else {
-      loadProducts(page);
+  const fetchInitialData = useCallback(async () => {
+    try {
+      const [activeCountRes, brandCountRes, categoryCountRes, categoriesRes, brandsRes] = await Promise.all([
+        getCountProductActive(), getCountBrandActive(), getCountCategoryActive(), getCategoryName(), getBrandName()
+      ]);
+      setStats({
+        countProductActive: activeCountRes.data.active_count,
+        countBrandActive: brandCountRes.data,
+        countCategoryActive: categoryCountRes.data,
+      });
+      setOptions({ categories: categoriesRes.data, brands: brandsRes.data });
+    } catch (error) {
+      console.error("Failed to fetch initial data:", error);
     }
-  };
-  
-  const handleUpdate = (product: ProductType) => {
-    setCurrentProduct(product);
-    setFormOpen(true);
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
+
+  // === EVENT HANDLERS ===
+  const handleSearch = (search: string | null, categoryId: string | null, brandId: string | null, status: string | null) => {
+    setPage(0);
+    setFilters({ search: search ?? '', categoryId: categoryId ?? '', brandId: brandId ?? '', status: status ?? '' });
   };
 
   const handleCreate = () => {
@@ -96,145 +97,130 @@ const Product: React.FC = () => {
     setFormOpen(true);
   };
 
-  const handleFormClose = () => {
-    setFormOpen(false);
+  const handleUpdate = (product: ProductType) => {
+    setCurrentProduct(product);
+    setFormOpen(true);
   };
 
-const handleSearch = (
-  search: string | null,
-  category: string | null,
-  brand: string | null,
-  status: string | null
-) => {
-  setSearch(search ?? "");       // nếu null thì set ""
-  setCategory(category ?? "");
-  setBrand(brand ?? "");
-  setStatus(status ?? "");
-  setPage(0); // reset về trang 0 mỗi khi search/filter
-};
-
-  const handleFormSubmit = async (data: ProductFormData) => {
-    if (currentProduct) {
-      console.log('Cập nhật sản phẩm', data);
-      await updateProduct(currentProduct.id, data);
-      console.log('Update thành công');
-      // Gọi loadProducts trực tiếp để làm mới dữ liệu
-      loadProducts(page);
-    } else {
-      console.log('Tạo sản phẩm mới', data);
-      await createProduct(data);
-      console.log('Create thành công');
-      // Gọi loadProducts trực tiếp để làm mới dữ liệu trên trang hiện tại
-      loadProducts(page);
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) return;
+    try {
+      await deleteProduct(id);
+      // Tải lại dữ liệu sau khi xóa thành công
+      if (products.length === 1 && page > 0) {
+        setPage(page - 1);
+      } else {
+        fetchProducts();
+      }
+    } catch (error) {
+      console.error("Failed to delete product:", error);
     }
-
-    setFormOpen(false);
   };
 
-  const goToPage = (newPage: number) => {
-    if (newPage >= 0 && newPage < totalPages) {
-      setPage(newPage);
+  const handleFormSubmit = async (formData: ProductFormData) => {
+    try {
+      if (currentProduct && currentProduct.id) {
+        // Logic CẬP NHẬT
+        const payload: UpdateProductRequest = {
+            // Chỉ gửi những trường có thể thay đổi
+            name: formData.name,
+            seoTitle: formData.seoTitle,
+            description: formData.description,
+            status: formData.status,
+            tag: formData.tag,
+            priceNormal: Number(formData.priceNormal) || 0,
+            priceSell: Number(formData.priceSell) || 0,
+            promotionPrice: Number(formData.promotionPrice) || 0,
+            categoryId: formData.categoryId,
+            brandId: formData.brandId,
+        };
+        await updateProduct(currentProduct.id, payload);
+      } else {
+        // Logic TẠO MỚI
+        const payload: CreateProductRequest = {
+            sku: formData.sku,
+            name: formData.name,
+            priceSell: Number(formData.priceSell) || 0,
+            categoryId: formData.categoryId,
+            brandId: formData.brandId,
+            // các trường tùy chọn khác
+            description: formData.description,
+            status: formData.status,
+            priceNormal: Number(formData.priceNormal) || 0,
+        };
+        await createProduct(payload);
+      }
+      fetchProducts(); // Tải lại dữ liệu
+    } catch (error) {
+      console.error("Failed to submit form:", error);
+    } finally {
+      setFormOpen(false);
     }
-  }
+  };
 
   return (
     <div className='px-6'>
       <div className='md:px-10 -mt-10 '>
+        {/* Header */}
         <div className='flex items-center justify-between'>
-          <div >
-            <h3 className='mb-2'>Quản lý sản phẩm</h3>
-            <p className="text-muted-foreground">
-              Theo dõi và quản lý sản phẩm của bạn
-            </p>
-          </div>
-
           <div>
-            <Dialog open={formOpen} onOpenChange={setFormOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" onClick={() => {
-                  setCurrentProduct(null);
-                  setFormOpen(true);
-                }}
-                  className="!rounded-lg bg-gray-950 text-white hover:bg-gray-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Thêm sản phẩm
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader className="text-right">
-                  <DialogTitle >
-                    {currentProduct ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {currentProduct ? 'Cập nhật thông tin sản phẩm' : 'Nhập thông tin sản phẩm mới'}
-                  </DialogDescription>
-                </DialogHeader>
-                <ProductForm
-                  initialData={currentProduct}
-                  onSubmit={handleFormSubmit}
-                  onClose={handleFormClose}
-                />
-              </DialogContent>
-            </Dialog>
+            <h3 className='mb-2 title'>Quản lý sản phẩm</h3>
+            <p className="content font-size-md opacity-80">Theo dõi và quản lý sản phẩm của bạn</p>
           </div>
+          <Dialog open={formOpen} onOpenChange={setFormOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={handleCreate} className="!rounded-lg bg-gray-950 text-white hover:bg-gray-700">
+                <Plus className="w-4 h-4 mr-2" /> Thêm sản phẩm
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{currentProduct ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'}</DialogTitle>
+                <DialogDescription>{currentProduct ? 'Cập nhật thông tin sản phẩm' : 'Nhập thông tin sản phẩm mới'}</DialogDescription>
+              </DialogHeader>
+              <ProductForm
+                initialData={currentProduct}
+                onSubmit={handleFormSubmit}
+                onClose={() => setFormOpen(false)}
+                categories={options.categories}
+                brands={options.brands}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
 
-        <div>
-          <ProductStatic
-            totalElements={totalElements}
-            countProducActive = {countProductActive}
-            countCategoryActive = {countCategoryActive}
-            countBrandActive = {countBrandActive}
-          />
-        </div>
+        {/* Stats */}
+        <ProductStatic
+          totalElements={totalElements}
+          countProducActive={stats.countProductActive}
+          countCategoryActive={stats.countCategoryActive}
+          countBrandActive={stats.countBrandActive}
+        />
 
-      
+        {/* Search */}
+        <ProductSearch
+          onSearch={handleSearch}
+          categories={options.categories}
+          brands={options.brands}
+          // TRUYỀN CÁC PROPS CÒN THIẾU VÀO ĐÂY
+          openFindCategory={openFindCategory}
+          setOpenFindCategory={setOpenFindCategory}
+          openFindBrand={openFindBrand}
+          setOpenFindBrand={setOpenFindBrand}
+        />
 
-        <div>
-          <ProductSearch
-            categories = {categories}
-            brands = {brands}
-            openFindCategory = {openFindCategory}
-            setOpenFindCategory = {setOpenFindCategory}
-            openFindBrand = {openFindBrand}
-            setOpenFindBrand = {setOpenFindBrand}
-            onSearch={handleSearch}
-          />
-        </div>
-        
-
-        <div>
-          <ProductTableComponent
-            data={products}
-            loading={loading}
-            onEdit={handleUpdate}
-            onDelete={handleDelete}
-            totalElements={totalElements}
-          />
-        </div>
-
-        <div className="flex justify-center items-center mt-4 space-x-4">
-          <button
-            onClick={() => goToPage(page - 1)}
-            disabled={page === 0}
-            className='px-3 py-1 bg-gray-200 rounded disabled:opacity-50'
-          >
-            Prev
-          </button>
-
-          <span>
-            Trang <strong>{totalPages === 0 ? 0 : page + 1}</strong> / <strong>{totalPages}</strong>
-          </span>
-
-          <button
-            onClick={() => goToPage(page + 1)}
-            disabled={page + 1 >= totalPages}
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+        {/* Table */}
+        <ProductTableComponent
+          data={products}
+          loading={loading}
+          onEdit={handleUpdate}
+          onDelete={handleDelete}
+          totalElements={totalElements}
+          page={page}
+          setPage={setPage}
+          totalPages={totalPages}
+          goToPage={setPage}
+        />
       </div>
     </div>
   );
